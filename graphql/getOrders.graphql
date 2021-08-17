@@ -1,0 +1,10 @@
+query getOrders {
+  orders{
+    id
+    orderedAt
+    totalAmount
+    items{
+      quantity
+    }
+  }  
+}

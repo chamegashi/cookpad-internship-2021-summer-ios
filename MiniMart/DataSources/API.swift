@@ -170,6 +170,172 @@ public final class FetchProductsQuery: GraphQLQuery {
   }
 }
 
+public final class GetOrdersQuery: GraphQLQuery {
+  /// The raw GraphQL definition of this operation.
+  public let operationDefinition: String =
+    """
+    query getOrders {
+      orders {
+        __typename
+        id
+        orderedAt
+        totalAmount
+        items {
+          __typename
+          quantity
+        }
+      }
+    }
+    """
+
+  public let operationName: String = "getOrders"
+
+  public init() {
+  }
+
+  public struct Data: GraphQLSelectionSet {
+    public static let possibleTypes: [String] = ["Query"]
+
+    public static var selections: [GraphQLSelection] {
+      return [
+        GraphQLField("orders", type: .nonNull(.list(.nonNull(.object(Order.selections))))),
+      ]
+    }
+
+    public private(set) var resultMap: ResultMap
+
+    public init(unsafeResultMap: ResultMap) {
+      self.resultMap = unsafeResultMap
+    }
+
+    public init(orders: [Order]) {
+      self.init(unsafeResultMap: ["__typename": "Query", "orders": orders.map { (value: Order) -> ResultMap in value.resultMap }])
+    }
+
+    /// リクエストしたユーザー自身のこれまでの注文を返す
+    public var orders: [Order] {
+      get {
+        return (resultMap["orders"] as! [ResultMap]).map { (value: ResultMap) -> Order in Order(unsafeResultMap: value) }
+      }
+      set {
+        resultMap.updateValue(newValue.map { (value: Order) -> ResultMap in value.resultMap }, forKey: "orders")
+      }
+    }
+
+    public struct Order: GraphQLSelectionSet {
+      public static let possibleTypes: [String] = ["Order"]
+
+      public static var selections: [GraphQLSelection] {
+        return [
+          GraphQLField("__typename", type: .nonNull(.scalar(String.self))),
+          GraphQLField("id", type: .nonNull(.scalar(GraphQLID.self))),
+          GraphQLField("orderedAt", type: .nonNull(.scalar(String.self))),
+          GraphQLField("totalAmount", type: .nonNull(.scalar(Int.self))),
+          GraphQLField("items", type: .nonNull(.list(.nonNull(.object(Item.selections))))),
+        ]
+      }
+
+      public private(set) var resultMap: ResultMap
+
+      public init(unsafeResultMap: ResultMap) {
+        self.resultMap = unsafeResultMap
+      }
+
+      public init(id: GraphQLID, orderedAt: String, totalAmount: Int, items: [Item]) {
+        self.init(unsafeResultMap: ["__typename": "Order", "id": id, "orderedAt": orderedAt, "totalAmount": totalAmount, "items": items.map { (value: Item) -> ResultMap in value.resultMap }])
+      }
+
+      public var __typename: String {
+        get {
+          return resultMap["__typename"]! as! String
+        }
+        set {
+          resultMap.updateValue(newValue, forKey: "__typename")
+        }
+      }
+
+      public var id: GraphQLID {
+        get {
+          return resultMap["id"]! as! GraphQLID
+        }
+        set {
+          resultMap.updateValue(newValue, forKey: "id")
+        }
+      }
+
+      /// 注文確定日時
+      public var orderedAt: String {
+        get {
+          return resultMap["orderedAt"]! as! String
+        }
+        set {
+          resultMap.updateValue(newValue, forKey: "orderedAt")
+        }
+      }
+
+      /// 合計金額
+      public var totalAmount: Int {
+        get {
+          return resultMap["totalAmount"]! as! Int
+        }
+        set {
+          resultMap.updateValue(newValue, forKey: "totalAmount")
+        }
+      }
+
+      /// 注文した商品とその個数のリスト
+      public var items: [Item] {
+        get {
+          return (resultMap["items"] as! [ResultMap]).map { (value: ResultMap) -> Item in Item(unsafeResultMap: value) }
+        }
+        set {
+          resultMap.updateValue(newValue.map { (value: Item) -> ResultMap in value.resultMap }, forKey: "items")
+        }
+      }
+
+      public struct Item: GraphQLSelectionSet {
+        public static let possibleTypes: [String] = ["OrderItem"]
+
+        public static var selections: [GraphQLSelection] {
+          return [
+            GraphQLField("__typename", type: .nonNull(.scalar(String.self))),
+            GraphQLField("quantity", type: .nonNull(.scalar(Int.self))),
+          ]
+        }
+
+        public private(set) var resultMap: ResultMap
+
+        public init(unsafeResultMap: ResultMap) {
+          self.resultMap = unsafeResultMap
+        }
+
+        public init(quantity: Int) {
+          self.init(unsafeResultMap: ["__typename": "OrderItem", "quantity": quantity])
+        }
+
+        public var __typename: String {
+          get {
+            return resultMap["__typename"]! as! String
+          }
+          set {
+            resultMap.updateValue(newValue, forKey: "__typename")
+          }
+        }
+
+        /// 注文した商品の個数
+        public var quantity: Int {
+          get {
+            return resultMap["quantity"]! as! Int
+          }
+          set {
+            resultMap.updateValue(newValue, forKey: "quantity")
+          }
+        }
+      }
+    }
+  }
+}
+
 public final class PostOrderMutation: GraphQLMutation {
   /// The raw GraphQL definition of this operation.
   public let operationDefinition: String =
