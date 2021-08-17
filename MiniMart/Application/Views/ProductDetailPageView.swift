@@ -22,7 +22,6 @@ struct ProductDetailPageView: View {
             Spacer().frame(height:16)
             Button(action: {
                 self.cartState.products.append(product)
-                print(self.cartState.products.count)
             }) {
                 Text("カートに追加する")
                     .frame(width: 300, height: 50)
@@ -45,7 +44,7 @@ struct ProductDetailPageView: View {
         }
         .sheet(isPresented: $isCartViewPresented) {
             NavigationView {
-                CartPageView()
+                CartPageView(isCartViewPresented: $isCartViewPresented)
             }
         }
     }
