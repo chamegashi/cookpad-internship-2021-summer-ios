@@ -43,4 +43,15 @@ final class CartState: ObservableObject {
         }
         return retArray
     }
+    
+    func orderProducts() -> [OrderItemInput] {
+        var retArray: [OrderItemInput] = []
+
+        for product in batchProducts(){
+            let item: OrderItemInput = OrderItemInput(productId: product.id, quantity: product.quantity)
+            retArray.append(item)
+        }
+
+        return retArray
+    }
 }

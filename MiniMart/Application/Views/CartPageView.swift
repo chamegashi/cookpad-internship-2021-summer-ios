@@ -4,7 +4,9 @@ struct CartPageView: View {
     @EnvironmentObject var cartState: CartState
     @State var isAleart: Bool = false
     @Binding var isCartViewPresented: Bool
-    
+    @State var isOrderFailed: Bool = false
+    @State var isAlart: Bool = false
+
     var body: some View {
         VStack{
             List{
@@ -28,20 +30,41 @@ struct CartPageView: View {
             }
 
             Button(action: {
-                self.isAleart = true
+                Network.shared.apollo.perform(mutation: PostOrderMutation(items: cartState.orderProducts())) { result in
+                    switch result {
+                    case let .success(graphqlResult):
+                        print(graphqlResult.data)
+                        self.isOrderFailed = false
+                        self.isAlart = true
+                        break
+                    case .failure:
+                        self.isOrderFailed = true
+                        self.isAlart = true
+                        break
+                    }
+                }
             }) {
                 Text("カートに追加する")
                     .frame(width: 300, height: 50)
                     .background(Color.orange)
                     .foregroundColor(.white).cornerRadius(/*@START_MENU_TOKEN@*/3.0/*@END_MENU_TOKEN@*/)
             }
-            .alert(isPresented: $isAleart) {
-                Alert(title: Text("注文完了！"),
-                      message: Text("OKを押してください。"),
-                      dismissButton: .default(Text("OK"), action: {
-                        self.isCartViewPresented = false
-                        self.cartState.products = []
-                      }))
+            .alert(isPresented: $isAlart) {
+                if(self.isOrderFailed){
+                    return Alert(title: Text("注文失敗"),
+                          message: Text("正常に動作しませんでした。もう一度行ってください。"),
+                          dismissButton: .default(Text("OK"), action: {
+                            self.isAlart = false
+                          }))
+                } else {
+                    return Alert(title: Text("注文完了！"),
+                          message: Text("OKを押してください。"),
+                          dismissButton: .default(Text("OK"), action: {
+                            self.isAlart = false
+                            self.isCartViewPresented = false
+                            self.cartState.products = []
+                          }))
+                }
             }
             .padding(.bottom, 20)
         }

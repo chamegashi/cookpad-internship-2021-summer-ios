@@ -4,6 +4,37 @@
 import Apollo
 import Foundation
 
+public struct OrderItemInput: GraphQLMapConvertible {
+  public var graphQLMap: GraphQLMap
+
+  /// - Parameters:
+  ///   - productId: 注文する商品の ID
+  ///   - quantity: 注文する商品の個数
+  public init(productId: GraphQLID, quantity: Int) {
+    graphQLMap = ["productId": productId, "quantity": quantity]
+  }
+
+  /// 注文する商品の ID
+  public var productId: GraphQLID {
+    get {
+      return graphQLMap["productId"] as! GraphQLID
+    }
+    set {
+      graphQLMap.updateValue(newValue, forKey: "productId")
+    }
+  }
+
+  /// 注文する商品の個数
+  public var quantity: Int {
+    get {
+      return graphQLMap["quantity"] as! Int
+    }
+    set {
+      graphQLMap.updateValue(newValue, forKey: "quantity")
+    }
+  }
+}
+
 public final class FetchProductsQuery: GraphQLQuery {
   /// The raw GraphQL definition of this operation.
   public let operationDefinition: String =
@@ -133,6 +164,143 @@ public final class FetchProductsQuery: GraphQLQuery {
         }
         set {
           resultMap.updateValue(newValue, forKey: "imageUrl")
+        }
+      }
+    }
+  }
+}
+
+public final class PostOrderMutation: GraphQLMutation {
+  /// The raw GraphQL definition of this operation.
+  public let operationDefinition: String =
+    """
+    mutation postOrder($items: [OrderItemInput!]!) {
+      createOrder(input: {items: $items}) {
+        __typename
+        order {
+          __typename
+          id
+        }
+      }
+    }
+    """
+
+  public let operationName: String = "postOrder"
+
+  public var items: [OrderItemInput]
+
+  public init(items: [OrderItemInput]) {
+    self.items = items
+  }
+
+  public var variables: GraphQLMap? {
+    return ["items": items]
+  }
+
+  public struct Data: GraphQLSelectionSet {
+    public static let possibleTypes: [String] = ["Mutation"]
+
+    public static var selections: [GraphQLSelection] {
+      return [
+        GraphQLField("createOrder", arguments: ["input": ["items": GraphQLVariable("items")]], type: .object(CreateOrder.selections)),
+      ]
+    }
+
+    public private(set) var resultMap: ResultMap
+
+    public init(unsafeResultMap: ResultMap) {
+      self.resultMap = unsafeResultMap
+    }
+
+    public init(createOrder: CreateOrder? = nil) {
+      self.init(unsafeResultMap: ["__typename": "Mutation", "createOrder": createOrder.flatMap { (value: CreateOrder) -> ResultMap in value.resultMap }])
+    }
+
+    /// 注文を確定する
+    public var createOrder: CreateOrder? {
+      get {
+        return (resultMap["createOrder"] as? ResultMap).flatMap { CreateOrder(unsafeResultMap: $0) }
+      }
+      set {
+        resultMap.updateValue(newValue?.resultMap, forKey: "createOrder")
+      }
+    }
+
+    public struct CreateOrder: GraphQLSelectionSet {
+      public static let possibleTypes: [String] = ["CreateOrderPayload"]
+
+      public static var selections: [GraphQLSelection] {
+        return [
+          GraphQLField("__typename", type: .nonNull(.scalar(String.self))),
+          GraphQLField("order", type: .object(Order.selections)),
+        ]
+      }
+
+      public private(set) var resultMap: ResultMap
+
+      public init(unsafeResultMap: ResultMap) {
+        self.resultMap = unsafeResultMap
+      }
+
+      public init(order: Order? = nil) {
+        self.init(unsafeResultMap: ["__typename": "CreateOrderPayload", "order": order.flatMap { (value: Order) -> ResultMap in value.resultMap }])
+      }
+
+      public var __typename: String {
+        get {
+          return resultMap["__typename"]! as! String
+        }
+        set {
+          resultMap.updateValue(newValue, forKey: "__typename")
+        }
+      }
+
+      /// 確定した注文
+      public var order: Order? {
+        get {
+          return (resultMap["order"] as? ResultMap).flatMap { Order(unsafeResultMap: $0) }
+        }
+        set {
+          resultMap.updateValue(newValue?.resultMap, forKey: "order")
+        }
+      }
+
+      public struct Order: GraphQLSelectionSet {
+        public static let possibleTypes: [String] = ["Order"]
+
+        public static var selections: [GraphQLSelection] {
+          return [
+            GraphQLField("__typename", type: .nonNull(.scalar(String.self))),
+            GraphQLField("id", type: .nonNull(.scalar(GraphQLID.self))),
+          ]
+        }
+
+        public private(set) var resultMap: ResultMap
+
+        public init(unsafeResultMap: ResultMap) {
+          self.resultMap = unsafeResultMap
+        }
+
+        public init(id: GraphQLID) {
+          self.init(unsafeResultMap: ["__typename": "Order", "id": id])
+        }
+
+        public var __typename: String {
+          get {
+            return resultMap["__typename"]! as! String
+          }
+          set {
+            resultMap.updateValue(newValue, forKey: "__typename")
+          }
+        }
+
+        public var id: GraphQLID {
+          get {
+            return resultMap["id"]! as! GraphQLID
+          }
+          set {
+            resultMap.updateValue(newValue, forKey: "id")
+          }
         }
       }
     }

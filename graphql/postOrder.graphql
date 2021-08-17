@@ -1,0 +1,7 @@
+mutation postOrder($items: [OrderItemInput!]!) {
+  createOrder(input: { items: $items }) {
+    order {
+      id
+    }
+  }
+}
